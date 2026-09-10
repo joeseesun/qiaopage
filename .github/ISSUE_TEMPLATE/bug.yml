@@ -1,0 +1,30 @@
+name: 问题反馈 / Bug report
+description: 报告安装、发布或使用问题。请勿附带凭据或私人内容。
+title: "[Bug] "
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 部署方式 / Deployment
+      options: [Docker, Node / VPS, Cloudflare Workers, Vercel]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / Version or commit
+      description: 同时注明 CLI 版本（如果相关）。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 如何复现 / Steps to reproduce
+      description: 提供最小示例、预期结果和实际结果。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 日志或截图 / Logs or screenshots
+      description: 删除 Token、Cookie、邀请链接、数据库和私人文件。安全漏洞请使用私密报告入口。

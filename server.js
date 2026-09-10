@@ -100,7 +100,7 @@ async function createApp(options = {}) {
           callback(error);
         }
       };
-    app.locals.siteName = "Quickshare";
+    app.locals.siteName = "QiaoPage";
     app.locals.formatDate = (value) =>
       new Date(value)
         .toLocaleDateString("zh-CN", {
@@ -801,7 +801,7 @@ async function createApp(options = {}) {
             ? 400
             : 500;
       if (status === 500)
-        console.error("Quickshare request failed:", err.message);
+        console.error("QiaoPage request failed:", err.message);
       res.status(status).json({
         error:
           status === 413
@@ -832,7 +832,7 @@ async function start() {
     process.env.HOST || "127.0.0.1",
     () =>
       console.log(
-        `Quickshare listening on ${server.address().address}:${server.address().port}`,
+        `QiaoPage listening on ${server.address().address}:${server.address().port}`,
       ),
   );
   for (const signal of ["SIGTERM", "SIGINT"])
