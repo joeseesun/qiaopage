@@ -1,5 +1,5 @@
 {
-  "name": "quickshare-agent",
+  "name": "qiaopage",
   "version": "3.0.0",
   "private": true,
   "description": "面向 Agent 的邀请制网站发布服务 | Agent-first, invitation-only web publishing",
@@ -52,7 +52,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/joeseesun/quickshare-agent.git"
+    "url": "https://github.com/joeseesun/qiaopage.git"
   },
   "author": "向阳乔木",
   "devDependencies": {

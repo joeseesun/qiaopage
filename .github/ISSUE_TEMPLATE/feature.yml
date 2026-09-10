@@ -1,0 +1,15 @@
+name: 改进建议 / Feature request
+description: 告诉我们你想完成什么，以及现在遇到的障碍。
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: 使用场景 / Use case
+      description: 你想完成什么？现在为什么不方便？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议 / Suggested approach
+      description: 可以附上替代方案或简短示例。

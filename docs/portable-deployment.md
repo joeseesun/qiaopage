@@ -1,6 +1,6 @@
 # 多平台架构与状态
 
-2026-09-10。Quickshare Agent 已提供 Docker / VPS、Cloudflare Workers 和 Vercel 的独立运行方式。[安装指南](cloud-install.md)记录 CLI、登录、资源创建与恢复步骤；[验收记录](verification.md)区分本地、云端和浏览器按钮。
+2026-09-10。QiaoPage 已提供 Docker / VPS、Cloudflare Workers 和 Vercel 的独立运行方式。[安装指南](cloud-install.md)记录 CLI、登录、资源创建与恢复步骤；[验收记录](verification.md)区分本地、云端和浏览器按钮。
 
 | 平台 | 数据库 | 文件存储 | 运行时 |
 | --- | --- | --- | --- |
@@ -24,10 +24,10 @@ Vercel 的 4.5 MB 请求限制由私有 512 KiB 分块解决，超过 3 MiB 的�
 
 ## 仓库与数据迁移
 
-独立仓库保留产品名称、API 和 CLI，旧仓库保留旧历史。2026-09-10 既有生产服务已迁移到数据库索引 + 私有对象目录：14 个站点、11 条历史、2 名成员，原地址和内容保留；迁移前后逻辑审计一致，完整备份与隔离恢复通过。生产目前运行已合并的存储版本；云端运行时适配先在两个独立测试安装验收，不会自动替换生产服务或搬走朋友的数据。
+QiaoPage 从 Quickshare 演进而来，保留 API、CLI 和配置兼容，旧仓库保留旧历史。2026-09-10 既有生产服务已迁移到数据库索引 + 私有对象目录：14 个站点、11 条历史、2 名成员，原地址和内容保留；迁移前后逻辑审计一致，完整备份与隔离恢复通过。生产目前运行已合并的存储版本；云端运行时适配先在两个独立测试安装验收，不会自动替换生产服务或搬走朋友的数据。
 
 Cloudflare 的恢复使用数据库 PITR + 仍保留的不可变 R2 对象；Vercel 可完整导出为 SQLite + 文件并恢复到 Node / Docker。备份与恢复操作须覆盖账号、索引、历史和文件，不能只备份数据库。
 
-当前仓库为私有。CLI 流程已实测；公开浏览器部署按钮未作为本次已通过的测试项目，也不改变仓库可见性。
+仓库按 ISC 许可开源。CLI 安装流程已实测；浏览器部署按钮尚未完成验收，因此不将它们列为可用入口。
 
 依据：[Cloudflare SQLite 事务与 PITR](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)、[Node HTTP bridge](https://developers.cloudflare.com/workers/runtime-apis/nodejs/http/)、[Vercel 函数限制](https://vercel.com/docs/functions/limitations)、[私有 Blob SDK](https://vercel.com/docs/vercel-blob/using-blob-sdk)。

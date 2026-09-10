@@ -45,7 +45,7 @@ const { values: flags, positionals: args } = parseArgs({
   },
 });
 const [command, target, file] = args;
-const help = `Quickshare Agent CLI ${CLI_VERSION}
+const help = `QiaoPage / Quickshare Agent CLI ${CLI_VERSION}
   quickshare whoami --json        # live identity, connection, permissions and usage
   quickshare capabilities --json  # live tools, limits, defaults and boundaries
   quickshare account [--username NAME] [--password-stdin]
@@ -74,7 +74,7 @@ Publish FILE or DIRECTORY.
   Retrying an identical publish command returns the original site. Use update to change it.
   --request-id ID starts an explicit publication (16–128 letters, numbers, _ or -); reuse it to retry.
 
-Quickshare — publish an HTML or Markdown work\n\n  quickshare login --url https://share.example.com --token-stdin\n  quickshare publish index.html --slug my-work --title "我的作品" --tags 工具,实验 --capture\n  quickshare update my-work index.html [--title ...] [--description ...]\n  quickshare list [--all] [--json]\n  quickshare get my-work [--output saved.html]\n  quickshare unpublish my-work\n  quickshare restore my-work\n  quickshare doctor\n\nOptions: --description TEXT --tags a,b --theme sage|sand|ink|rose --draft --json --cover cover.png --capture\nMarkdown (.md/.markdown) is rendered as styled HTML.\nDirectories need index.html or index.md; max 100 files, 8 MB total, 5 MB per file.\nToken: saved by login or QUICKSHARE_TOKEN; config: QUICKSHARE_CONFIG.\n`;
+QiaoPage — publish an HTML or Markdown work\n\n  quickshare login --url https://share.example.com --token-stdin\n  quickshare publish index.html --slug my-work --title "我的作品" --tags 工具,实验 --capture\n  quickshare update my-work index.html [--title ...] [--description ...]\n  quickshare list [--all] [--json]\n  quickshare get my-work [--output saved.html]\n  quickshare unpublish my-work\n  quickshare restore my-work\n  quickshare doctor\n\nOptions: --description TEXT --tags a,b --theme sage|sand|ink|rose --draft --json --cover cover.png --capture\nMarkdown (.md/.markdown) is rendered as styled HTML.\nDirectories need index.html or index.md; max 100 files, 8 MB total, 5 MB per file.\nToken: saved by login or QUICKSHARE_TOKEN; config: QUICKSHARE_CONFIG.\n`;
 function normalizeUrl(raw) {
   const u = new URL(raw);
   if (
