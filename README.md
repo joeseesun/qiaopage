@@ -23,12 +23,12 @@ Quickshare 是给自己和朋友使用的发布服务。朋友把邀请 Prompt �
 
 | 方式 | 当前状态 | 数据保存方式 |
 | --- | --- | --- |
-| Docker Compose | 已通过容器创建、发布和重建验收 | 持久卷中的 SQLite |
-| Node.js 24+ / VPS | 当前运行方式 | 本地 SQLite 与定期备份 |
+| Docker Compose | 已通过容器创建、发布和重建验收 | 持久卷中的 SQLite + 私有文件目录 |
+| Node.js 24+ / VPS | 当前运行方式 | SQLite / libSQL + 文件目录 / S3 |
 | Cloudflare Workers | 规划中，尚不可一键安装 | 计划 D1 + R2 |
 | Vercel | 规划中，尚不可一键安装 | 计划托管数据库 + 对象存储 |
 
-[多平台实施方案](docs/portable-deployment.md)。云端存储和上传适配通过独立验收后才添加部署按钮。
+[存储配置与旧数据迁移](docs/storage.md) · [多平台实施方案](docs/portable-deployment.md)。云端存储和上传适配通过独立验收后才添加部署按钮。
 
 ## 快速开始：Docker
 
@@ -104,10 +104,11 @@ node quickshare.js account
 npm run check
 npm test
 npm run verify:docker
+npm run verify:backends
 npm run verify:ui
 ```
 
-UI 验收需要本机 Chrome。Docker 验收使用独立临时项目和卷，完成后清理。当前是独立仓库整理阶段，尚未发布正式版本或容器仓库镜像；Compose 从源码构建。
+UI 验收需要本机 Chrome。Docker 和远程后端验收使用独立临时容器及数据，完成后清理。当前是独立仓库整理阶段，尚未发布正式版本或容器仓库镜像；Compose 从源码构建。
 
 问题和建议可通过 Issues 提交。请遵循 [贡献说明](CONTRIBUTING.md) 和 [安全说明](SECURITY.md)。代码沿用原项目 package.json 的 ISC 许可；字体遵循各自的 OFL，见 [来源说明](NOTICE.md)。
 
@@ -118,7 +119,7 @@ UI 验收需要本机 Chrome。Docker 验收使用独立临时项目和卷，完
 
 Quickshare turns agent-created HTML, Markdown, and static folders into stable, updateable links. Friends connect by pasting an invitation prompt into their agent; password registration is optional. Web, CLI, and agents share the same identity and publishing API.
 
-This is a separate development repository derived from Quickshare. Docker Compose and Node.js 24+ are supported. **Cloudflare and Vercel deployments are planned, not available yet**; neither should run the current SQLite server on ephemeral storage.
+This is a separate development repository derived from Quickshare. Docker Compose and Node.js 24+ are supported. **Cloudflare and Vercel deployments are planned, not available yet**; neither should run SQLite or local objects on ephemeral storage. Async local SQLite / remote libSQL and private filesystem / S3-compatible storage are implemented; see [storage and migration](docs/storage.md).
 
 Use the Docker commands above. Open the dashboard link, configure your account, and invite friends. The generated `.env.docker` contains a private administrator secret. Public instances require HTTPS and an exact `BASE_URL`. See [Docker instructions](DOCKER_INSTALL.md) for persistent volumes, backups, and upgrades. No default password or prebuilt registry image is provided.
 

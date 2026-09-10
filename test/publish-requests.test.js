@@ -12,7 +12,7 @@ async function fixture(t, options = {}) {
   const server = createServer();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   const url = "http://127.0.0.1:" + server.address().port;
-  const runtime = createApp({ token, dbPath: ":memory:", baseUrl: url, ...options });
+  const runtime = await createApp({ token, dbPath: ":memory:", baseUrl: url, ...options });
   server.on("request", runtime.app);
   t.after(() => new Promise(resolve => { server.close(() => { runtime.db.close(); resolve(); }); server.closeIdleConnections(); }));
   const call = (endpoint, body, auth = token, method = body === undefined ? "GET" : "POST") => fetch(url + endpoint, {
@@ -81,7 +81,7 @@ test("automatic collisions retry inside the transaction; custom addresses never 
   const taken = await call("/api/v1/works", { ...content, slug: "hello-world-aaaaaaaaaa", requestId: randomUUID() });
   assert.equal(taken.status, 409);
   assert.equal((await taken.json()).code, "SLUG_TAKEN");
-  assert.equal(db.prepare("SELECT html FROM works WHERE slug=?").get("hello-world-aaaaaaaaaa").html, "<h1>Existing</h1>");
+  assert.equal((await (await call("/api/v1/works/hello-world-aaaaaaaaaa")).json()).work.html, "<h1>Existing</h1>");
   assert.equal((await call("/api/v1/works", { ...content, requestId: randomUUID() })).status, 503);
   assert.equal(db.prepare("SELECT count(*) n FROM works").get().n, 2);
   assert.equal(db.isTransaction, false);

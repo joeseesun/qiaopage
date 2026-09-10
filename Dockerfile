@@ -5,6 +5,7 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY server.js ./
 COPY bin ./bin
 COPY lib ./lib
+COPY scripts/migrate-storage.js ./scripts/migrate-storage.js
 COPY views/showcase ./views/showcase
 COPY public/showcase ./public/showcase
 RUN mkdir /app/data && chown node:node /app/data

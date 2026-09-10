@@ -26,3 +26,14 @@ jobs:
         with:
           node-version: 24.20.0
       - run: node scripts/verify-docker.cjs
+  backends:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run verify:backends

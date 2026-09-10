@@ -46,7 +46,7 @@ test("Markdown strips active markup before rendering or screenshot capture", () 
 });
 test("CLI publishes and updates Markdown, exports HTML and retains existing HTML compatibility", async (t) => {
   const token = "test-markdown-token-".repeat(3);
-  const { app, db } = createApp({ token, dbPath: ":memory:" });
+  const { app, db } = await createApp({ token, dbPath: ":memory:" });
   const server = await new Promise((resolve) => {
     const s = app.listen(0, "127.0.0.1", () => resolve(s));
   });
