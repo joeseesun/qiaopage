@@ -82,6 +82,8 @@ For local development: `npm ci`, `npm run setup`, `npm start`, then open [the lo
 
 Copy the prompt from your instance or use your personal invitation prompt. Your agent reads that server's `/skill.md`, installs the standalone CLI, redeems the code through stdin, and stores credentials privately. Setup does not publish any files automatically.
 
+Natural-language requests accept **QiaoPage**, **Quickshare**, **qp/QP**, and **qs/QS** interchangeably (for example, “发布到 qp”). Reuse the existing Skill and publishing profile. These are conversation aliases; terminal commands remain unchanged.
+
 After connecting, use the installed CLI path:
 
 ```sh
