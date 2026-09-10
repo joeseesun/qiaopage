@@ -1,0 +1,23 @@
+services:
+  quickshare:
+    build: .
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${QUICKSHARE_PORT:-8090}:3000"
+    environment:
+      QUICKSHARE_TOKEN: ${QUICKSHARE_TOKEN:?Set a private publish token}
+      BASE_URL: ${BASE_URL:-http://127.0.0.1:8090}
+    volumes:
+      - quickshare-data:/app/data
+    mem_limit: 256m
+    cpus: 1.0
+volumes:
+  quickshare-data:

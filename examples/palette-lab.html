@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>色彩实验室</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f8efe3;
+      color: #402f28;
+      font: 16px/1.6 system-ui;
+    }
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 60px 35px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 20px;
+    }
+    small {
+      font: 13px monospace;
+      letter-spacing: 0.12em;
+    }
+    h1 {
+      font-size: 44px;
+      margin: 12px 0 5px;
+      font-weight: 600;
+    }
+    p {
+      color: #786257;
+    }
+    button {
+      background: #45382e;
+      border: 0;
+      border-radius: 6px;
+      color: #fff;
+      padding: 13px 20px;
+      font: inherit;
+      cursor: pointer;
+    }
+    .colors {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 42px;
+    }
+    .swatch {
+      min-height: 320px;
+      border-radius: 90px 90px 8px 8px;
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+      align-items: center;
+    }
+    .hex {
+      padding: 5px 10px;
+      background: #fffc;
+      border-radius: 4px;
+      font: 13px monospace;
+      color: #302b25;
+    }
+    .caption {
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    #status {
+      min-height: 25px;
+    }
+    @media (max-width: 600px) {
+      main {
+        padding: 28px 20px;
+      }
+      header {
+        display: block;
+      }
+      h1 {
+        font-size: 32px;
+      }
+      .colors {
+        gap: 5px;
+        margin-top: 25px;
+      }
+      .swatch {
+        min-height: 240px;
+        border-radius: 45px 45px 5px 5px;
+        padding: 12px 3px;
+      }
+      .hex {
+        font-size: 9px;
+        padding: 4px;
+      }
+      button {
+        font-size: 14px;
+      }
+    }
+  </style>
+  <main>
+    <header>
+      <div>
+        <small>PALETTE LAB / 颜色练习</small>
+        <h1>今天，换一种配色。</h1>
+        <p>五个颜色，一点新的灵感。</p>
+      </div>
+      <button id="shuffle">换一组配色 ↗</button>
+    </header>
+    <div class="colors" id="colors"></div>
+    <p class="caption">点击色块复制 HEX 色值，带到你的下一个作品里。</p>
+    <p id="status" role="status"></p>
+  </main>
+  <script>
+    const colors = document.querySelector("#colors"),
+      status = document.querySelector("#status");
+    const palettes = [
+      ["#B95D40", "#D8AA66", "#E9D9B8", "#8F9F7E", "#384D48"],
+      ["#E3AC9D", "#AE5E53", "#DBC9A4", "#798983", "#344650"],
+      ["#E9CB62", "#D98158", "#A2B18A", "#4B7368", "#ECE7D9"],
+      ["#ACBDB7", "#D8AE91", "#DDA552", "#67584B", "#EBDEC4"],
+    ];
+    let index = 0;
+    function draw() {
+      colors.replaceChildren(
+        ...palettes[index].map((hex) => {
+          const b = document.createElement("button");
+          b.className = "swatch";
+          b.style.background = hex;
+          b.setAttribute("aria-label", "复制 " + hex);
+          const label = document.createElement("span");
+          label.className = "hex";
+          label.textContent = hex;
+          b.append(label);
+          b.onclick = async () => {
+            try {
+              await navigator.clipboard.writeText(hex);
+              status.textContent = "已复制 " + hex;
+            } catch {
+              status.textContent = "色值：" + hex + "，可选择文字手动复制。";
+            }
+          };
+          return b;
+        }),
+      );
+    }
+    document.querySelector("#shuffle").onclick = () => {
+      index = (index + 1) % palettes.length;
+      draw();
+      status.textContent = "";
+    };
+    draw();
+  </script>
+</html>

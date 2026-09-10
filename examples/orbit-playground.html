@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>轨道游乐场</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #142827;
+      color: #e1ebe4;
+      font: 16px/1.6 system-ui;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+    header {
+      position: absolute;
+      top: 30px;
+      left: 35px;
+      pointer-events: none;
+    }
+    small {
+      font: 12px monospace;
+      color: #a4c8ba;
+      letter-spacing: 0.12em;
+    }
+    h1 {
+      font-size: 38px;
+      margin: 6px 0;
+    }
+    p {
+      color: #b7cbbf;
+      font-size: 14px;
+      margin: 0;
+    }
+    .controls {
+      position: absolute;
+      bottom: 28px;
+      left: 35px;
+      right: 35px;
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 13px;
+    }
+    button {
+      padding: 9px 18px;
+      border: 1px solid #82ad99;
+      border-radius: 30px;
+      background: #243f38;
+      color: #e1ebe4;
+      font: inherit;
+      cursor: pointer;
+    }
+    input {
+      accent-color: #aec79b;
+      vertical-align: middle;
+      width: 130px;
+    }
+    @media (max-width: 600px) {
+      header {
+        left: 22px;
+        top: 22px;
+      }
+      h1 {
+        font-size: 29px;
+      }
+      .controls {
+        left: 22px;
+        right: 22px;
+        gap: 10px;
+      }
+    }</style
+  ><canvas id="sky" aria-label="交互轨道动画"></canvas>
+  <header>
+    <small>ORBIT PLAYGROUND</small>
+    <h1>让星球，绕着你转。</h1>
+    <p>点击画面，移动引力中心。</p>
+  </header>
+  <div class="controls">
+    <button id="pause">暂停运动</button
+    ><label
+      >速度 <input id="speed" type="range" min="1" max="10" value="4" /></label
+    ><button id="reset">回到中心</button>
+  </div>
+  <script>
+    const canvas = document.querySelector("canvas"),
+      ctx = canvas.getContext("2d");
+    let w,
+      h,
+      cx,
+      cy,
+      t = 0,
+      paused = false;
+    const colors = ["#d2ad6d", "#dbe4c2", "#8fbdb0", "#d28765", "#aac08c"];
+    function resize() {
+      w = canvas.width = innerWidth;
+      h = canvas.height = innerHeight;
+      cx = w * 0.55;
+      cy = h * 0.54;
+    }
+    addEventListener("resize", resize);
+    resize();
+    canvas.onclick = (e) => {
+      cx = e.clientX;
+      cy = e.clientY;
+    };
+    document.querySelector("#pause").onclick = (e) => {
+      paused = !paused;
+      e.target.textContent = paused ? "继续运动" : "暂停运动";
+    };
+    document.querySelector("#reset").onclick = () => {
+      cx = w * 0.55;
+      cy = h * 0.54;
+    };
+    function frame() {
+      ctx.fillStyle = "#142827";
+      ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 70; i++) {
+        const x = (i * 137.3) % w,
+          y = (i * i * 43.7) % h;
+        ctx.fillStyle = "#9eb8a966";
+        ctx.fillRect(x, y, 1.5, 1.5);
+      }
+      const size = Math.min(w * 0.37, h * 0.35);
+      for (let i = 0; i < 5; i++) {
+        const r = size * (0.24 + i * 0.18);
+        ctx.strokeStyle = "#526e604f";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r, r * 0.65, -0.35, 0, Math.PI * 2);
+        ctx.stroke();
+        let a = t / (i + 1) + i * 1.4,
+          x = r * Math.cos(a),
+          y = r * 0.65 * Math.sin(a);
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.arc(
+          cx + x * Math.cos(-0.35) - y * Math.sin(-0.35),
+          cy + x * Math.sin(-0.35) + y * Math.cos(-0.35),
+          7 + i * 3,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      ctx.fillStyle = "#e9c784";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+      ctx.fill();
+      if (!paused) t += 0.003 * Number(document.querySelector("#speed").value);
+      requestAnimationFrame(frame);
+    }
+    frame();
+  </script>
+</html>

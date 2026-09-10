@@ -1,0 +1,10 @@
+<details id="sharing-settings" class="sharing-settings"><summary>分享与搜索 <span>标题、封面与收录</span></summary>
+<p id="sharing-loading" class="hint">正在读取分享设置…</p>
+<form id="sharing-form" hidden>
+<label class="check"><input id="share-enabled" type="checkbox">补齐分享卡片</label><p class="hint">补齐缺失的标题与封面，保留页面原貌。</p>
+<div id="share-fields"><label>分享标题<input id="share-title" maxlength="100" placeholder="使用页面标题"></label><label>简介<textarea id="share-description" maxlength="600" rows="2" placeholder="一句话介绍这个作品"></textarea></label>
+<div class="share-cover-actions"><label class="share-upload" for="share-image">选择封面<input id="share-image" type="file" accept="image/png,image/jpeg,image/webp" class="visually-hidden"></label><button id="share-remove" type="button" hidden>使用默认封面</button><span id="share-cover-hint" class="hint">PNG、JPEG、WebP · 2 MB 内</span></div></div>
+<div class="share-preview" aria-label="分享卡片预览"><img id="share-preview-image" alt="分享封面预览" referrerpolicy="no-referrer"><div><strong id="share-preview-title"></strong><p id="share-preview-description"></p></div></div><p id="share-preview-hint" class="hint">卡片示意，实际样式由分享平台决定。</p>
+<label class="check share-index"><input id="share-indexable" type="checkbox">允许搜索引擎收录</label><p class="hint">独立于展厅展示，实际收录由搜索引擎决定。</p><p id="share-source-warning" class="hint" hidden>原页面设有 noindex，仍会阻止收录。请先在源文件中修改。</p>
+<div class="share-save"><p id="sharing-error" class="error" role="alert"></p><button id="share-save" class="primary">保存设置</button></div>
+</form></details>

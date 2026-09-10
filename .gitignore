@@ -1,0 +1,14 @@
+node_modules/
+.env*
+!.env.example
+.data/
+artifacts/
+backups/
+*.sqlite*
+*.db*
+*.log
+.DS_Store
+coverage/
+.vercel/
+.wrangler/
+.dev.vars*

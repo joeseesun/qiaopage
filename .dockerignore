@@ -1,0 +1,11 @@
+.git
+.env*
+.data
+node_modules
+artifacts
+design-previews
+
+backups
+.vercel
+.wrangler
+.dev.vars*

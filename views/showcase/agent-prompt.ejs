@@ -1,0 +1,7 @@
+<dialog id="agent-dialog" aria-labelledby="agent-dialog-title">
+  <div class="dialog-head"><h2 id="agent-dialog-title">复制给你的 Agent</h2><button type="button" id="close-agent-dialog" aria-label="关闭安装说明">×</button></div>
+  <p class="hint">自动复制不可用。选中下面的指令，手动复制后粘贴给 AI 助手。</p>
+  <textarea id="install-prompt" readonly aria-label="Agent 安装 Prompt"><%= agentPrompt %></textarea>
+</dialog>
+<div id="agent-feedback" role="status" aria-live="polite"></div>
+<script src="/assets/agent.js?v=<%= portalVersion %>" defer></script>

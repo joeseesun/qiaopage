@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Quickshare · 安装到你的 Agent</title><meta name="description" content="复制一段 Prompt，让你的 AI 助手安装 Quickshare。发布 HTML、Markdown 和静态网站，获得可分享的链接。"><link rel="icon" href="/assets/favicon.svg?v=<%= portalVersion %>"><link rel="stylesheet" href="/assets/portal.css?v=<%= portalVersion %>"><%- include("social-meta", {title:"Quickshare · 安装到你的 Agent",description:"复制一段 Prompt，让你的 AI 助手完成发布与更新。",canonical:baseUrl+"/publish"}) %></head>
+<body>
+<header class="top"><a class="brand" href="/"><%- include('brand') %></a><nav><a href="/explore">作品展厅</a><a href="/dashboard">我的空间 ↗</a></nav></header>
+<main class="publish-guide-page">
+  <header class="guide-hero"><h1>把发布这一步，<br>也交给你的 Agent。</h1><p class="intro">复制下面的 Prompt，粘贴到 Codex、Claude Code 或其他 AI 助手。<br>它会帮你安装工具，再问你想发布什么。</p><%- include('agent-button') %><details class="prompt-details"><summary>查看安装 Prompt</summary><pre><%= agentPrompt %></pre></details></header>
+  <ol class="setup-steps">
+    <li><span class="step-number" aria-hidden="true">01</span><div><h2>复制给 Agent</h2><p>Agent 会读取安装说明、检查环境，并安装 CLI。支持本地技能的 Agent 还会保存发布技能，下次可以直接使用。</p></div></li>
+    <li><span class="step-number" aria-hidden="true">02</span><div><h2>自动连接发布空间</h2><p>拿到邀请 Prompt 后，Agent 会自动兑换邀请码、保存连接。已经在网页使用？在自己的空间复制 Prompt，即可连接同一个空间。无须注册，用户名和密码可以以后再设置。</p></div></li>
+    <li><span class="step-number" aria-hidden="true">03</span><div><h2>告诉它，你想发布什么</h2><p>例如：“把这个网页发布到 Quickshare。”之后需要修改，继续说：“更新这个作品，保留原链接。”发布后，任何拿到链接的人都能访问。</p></div></li>
+  </ol>
+  <section class="guide-reference"><h2>手动安装与使用</h2><p class="hint">已有 Node.js 24 或更新版本，就能直接运行这个独立脚本。</p><p><a class="text-link" href="/client/quickshare.js" download="quickshare.js">下载 quickshare.js ↓</a> · <a class="text-link" href="/skill.md">查看 Agent 技能文档</a></p><pre>node quickshare.js login --url <%= baseUrl %> --token-stdin &lt; PRIVATE_TOKEN_FILE
+node quickshare.js doctor --json
+node quickshare.js publish ./index.html
+node quickshare.js publish ./article.md
+node quickshare.js publish ./dist
+node quickshare.js update 返回的slug ./dist</pre>
+    <details><summary>需要自己填写网址吗？</summary><p>不需要。发布时自动生成唯一地址，更新内容和修改标题都保留原链接。相同发布请求重试不会重复创建。只有想指定地址时才用 --slug；已被占用的地址不能覆盖。</p></details>
+    <details><summary>哪些文件可以发布？</summary><p>HTML、Markdown，以及包含 index.html 或 index.md 的网站文件夹。每次最多 100 个文件，单文件 5 MB、合计 8 MB。Markdown 自动渲染为阅读页并保留原文。请只选择准备分享的静态内容，排除密钥、数据库、隐藏文件和 node_modules。</p></details>
+    <details><summary>链接、展厅和访问范围有什么区别？</summary><p>链接默认可被任何拿到它的人访问；新内容默认不进入作品展厅。需要公开展示时，在管理界面选择“展示到展厅”或使用 --listed。更新和恢复版本都会保留原链接。</p><pre>node quickshare.js versions my-site
+node quickshare.js rollback my-site 1
+node quickshare.js unpublish my-site
+node quickshare.js restore my-site</pre></details>
+    <details><summary>能在 Agent 对话里管理账号吗？</summary><p>可以。Agent 会先读取你当前连接的账号与权限，再按要求修改用户名、设置密码或调整分享卡片。后台也能修改。改用户名保留作品和链接；改密码退出旧网页登录，但保留 Agent 连接。</p><pre>node quickshare.js whoami --json
+node quickshare.js capabilities --json
+node quickshare.js account --username NEW_NAME
+node quickshare.js account --generate-password --output PRIVATE_NEW_FILE
+node quickshare.js sharing my-site --preview --share-enabled true --output preview.png</pre><p class="hint">生成的密码只保存到本地私密文件，不输出到聊天。预览不会保存分享设置。</p></details>
+    <details><summary>网站运行有哪些限制？</summary><p>这是静态托管服务。前端项目需要先构建，再发布产物；CSS、JavaScript、字体和图片使用相对路径。页面在隔离沙箱里运行，暂不支持 localStorage、Service Worker、服务端代码和依赖主站登录凭据的请求。</p></details>
+  </section>
+</main>
+<%- include('footer') %>
+<%- include('agent-prompt') %>
+</body></html>
