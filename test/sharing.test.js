@@ -9,7 +9,7 @@ const html = '<!doctype html><html lang="zh"><head><title>原始标题</title><s
 async function fixture(t) {
   const server = createServer(); await new Promise(r => server.listen(0, "127.0.0.1", r));
   const url = `http://127.0.0.1:${server.address().port}`;
-  const runtime = createApp({ token, dbPath: ":memory:", baseUrl: url }); server.on("request", runtime.app);
+  const runtime = await createApp({ token, dbPath: ":memory:", baseUrl: url }); server.on("request", runtime.app);
   t.after(() => new Promise(r => { server.close(() => { runtime.db.close(); r(); }); server.closeIdleConnections(); }));
   const call = (endpoint, body, method = body === undefined ? "GET" : "PATCH", key = token) => fetch(url + endpoint, { method, headers: { "Content-Type": "application/json", Origin: url, ...(key ? { Authorization: "Bearer " + key } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
   await call("/api/v1/works/demo", { title: "作品", html }, "PUT");

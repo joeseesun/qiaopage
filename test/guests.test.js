@@ -13,7 +13,7 @@ async function fixture(t) {
   const server = createServer();
   await new Promise(resolve => server.listen(0,"127.0.0.1",resolve));
   const url = "http://127.0.0.1:" + server.address().port;
-  const runtime = createApp({token, dbPath: ":memory:", baseUrl: url});
+  const runtime = await createApp({token, dbPath: ":memory:", baseUrl: url});
   server.on("request", runtime.app);
   t.after(() => new Promise(resolve => { server.close(() => {runtime.db.close();resolve();}); server.closeIdleConnections(); }));
   async function call(endpoint, body, auth = token, origin = url) {

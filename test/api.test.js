@@ -8,7 +8,7 @@ const { createApp } = require("../server");
 const token = "test-only-token-".repeat(4);
 async function fixture(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "quickshare-test-"));
-  const runtime = createApp({ token, dbPath: path.join(dir, "test.sqlite") });
+  const runtime = await createApp({ token, dbPath: path.join(dir, "test.sqlite") });
   const server = await new Promise((resolve) => {
     const s = runtime.app.listen(0, "127.0.0.1", () => resolve(s));
   });
@@ -226,14 +226,14 @@ test("CLI publishes, updates, exports and preserves private login credentials", 
 test("database survives a runtime restart", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "quickshare-persist-"));
   const dbPath = path.join(dir, "db.sqlite");
-  let runtime = createApp({ token, dbPath });
+  let runtime = await createApp({ token, dbPath });
   runtime.db
     .prepare(
       "INSERT INTO works(slug,title,html,created_at,updated_at) VALUES(?,?,?,?,?)",
     )
     .run("retained", "Retained", "<h1>Hello</h1>", "now", "now");
   runtime.db.close();
-  runtime = createApp({ token, dbPath });
+  runtime = await createApp({ token, dbPath });
   assert.equal(
     runtime.db.prepare("SELECT title FROM works WHERE slug=?").get("retained")
       .title,

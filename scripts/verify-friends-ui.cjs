@@ -8,7 +8,7 @@ const base = "http://127.0.0.1:39997",
   root = path.join(__dirname, "..");
 (async () => {
   fs.mkdirSync(path.join(root, "artifacts"), { recursive: true });
-  const runtime = createApp({ token, dbPath: ":memory:", baseUrl: base });
+  const runtime = await createApp({ token, dbPath: ":memory:", baseUrl: base });
   const server = await new Promise((resolve) => {
     const s = runtime.app.listen(39997, "127.0.0.1", () => resolve(s));
   });

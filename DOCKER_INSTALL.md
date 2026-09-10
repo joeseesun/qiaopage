@@ -28,12 +28,12 @@ CLI 在容器内部访问服务，返回的登录链接使用配置的 `BASE_URL
 - `.env.docker` 的 `BASE_URL` 必须与浏览器实际访问地址完全一致。公网部署设置为你的 HTTPS 域名，例如 `https://share.example.com`，再配置反向代理和 TLS。
 - 默认端口仅绑定宿主机 `127.0.0.1:8090`。可在 `.env.docker` 设置 `QUICKSHARE_PORT=8091`；本地访问时同时修改 `BASE_URL`。不要与已有服务占用同一端口。
 - `.env` 用于本地 Node 开发，`.env.docker` 用于 Compose；命令都显式指定后者。
-- 应用运行在非 root 用户下，根文件系统只读，数据库写入持久卷 `/app/data`。请保留 `.env.docker` 和数据卷，丢失密钥可能失去管理员恢复入口。
+- 应用运行在非 root 用户下，根文件系统只读，数据库和私有文件写入持久卷 `/app/data`。请保留 `.env.docker` 和数据卷，丢失密钥可能失去管理员恢复入口。
 - 服务镜像包含 CLI、Skill、中文 OG 字体和 PNG 渲染依赖；截图需要发布端自行安装 Playwright 浏览器。
 
 ## 更新与备份
 
-更新前备份。以下命令暂停这一套 Compose 服务，生成包含 SQLite/WAL 的一致数据目录归档，然后重新启动。归档包含账号数据，应私密保管。
+使用默认本地存储时，更新前备份。以下命令暂停这一套 Compose 服务，生成包含 SQLite/WAL 和 objects/ 的一致数据目录归档，然后重新启动。归档包含账号数据，应私密保管。
 
 ```sh
 mkdir -p backups
@@ -54,3 +54,7 @@ docker compose --env-file .env.docker ps
 ```
 
 开发者可运行 `node scripts/verify-docker.cjs`。它创建独立测试项目和临时数据卷，验证权限、发布原文、OG PNG、重建保留账号及网站、版本冲突，最后只删除测试项目的数据。当前阿里云实例仍使用 systemd，Docker 安装不会自动迁移它。
+
+## 远程数据库和对象存储
+
+可在 `.env.docker` 设置 `DATABASE_URL` / `DATABASE_AUTH_TOKEN` 和 `OBJECT_STORE=s3` / `S3_*`。Compose 已转发这些配置，详见[存储与迁移](docs/storage.md)。使用远程后端时，上面的卷归档不包含远程数据库或 bucket，必须使用文档中的完整备份命令。旧版内联数据可渐进迁移，升级前先备份。

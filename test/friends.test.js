@@ -10,7 +10,7 @@ const { spawn } = require("node:child_process");
 const rootToken = "friends-fixture-only-".repeat(3),
   origin = "http://127.0.0.1:39999";
 async function fixture(t) {
-  const runtime = createApp({
+  const runtime = await createApp({
     token: rootToken,
     dbPath: ":memory:",
     baseUrl: origin,
@@ -443,7 +443,7 @@ test("directory validation rejects traversal, secrets, duplicate names and overs
   assert.match(md.html, /src="assets\/pic.png"/);
   assert.ok(md.files.some((f) => f.path === "index.md"));
 });
-test("additive migration preserves legacy owners, public listings, HTML and covers", () => {
+test("additive migration preserves legacy owners, public listings, HTML and covers", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-migrate-"));
   const dbPath = path.join(dir, "db.sqlite");
   const old = new DatabaseSync(dbPath);
@@ -456,13 +456,13 @@ test("additive migration preserves legacy owners, public listings, HTML and cove
     )
     .run("legacy", "旧内容", "<h1>keep me</h1>", "now", "now");
   old.close();
-  const first = createApp({ token: rootToken, dbPath });
+  const first = await createApp({ token: rootToken, dbPath });
   let row = first.db.prepare("SELECT * FROM works").get();
   assert.equal(row.owner_id, 1);
   assert.equal(row.listed, 1);
   assert.equal(row.html, "<h1>keep me</h1>");
   first.db.close();
-  const again = createApp({ token: rootToken, dbPath });
+  const again = await createApp({ token: rootToken, dbPath });
   assert.equal(again.db.prepare("SELECT count(*) AS n FROM works").get().n, 1);
   assert.equal(
     again.db.prepare("PRAGMA integrity_check").get().integrity_check,

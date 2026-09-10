@@ -7,7 +7,7 @@ const rootToken="agent-account-root-test-".repeat(3);
 async function fixture(t){
  const server=createServer();await new Promise(r=>server.listen(0,"127.0.0.1",r));
  const url=`http://127.0.0.1:${server.address().port}`;
- const runtime=createApp({token:rootToken,dbPath:":memory:",baseUrl:url});server.on("request",runtime.app);
+ const runtime=await createApp({token:rootToken,dbPath:":memory:",baseUrl:url});server.on("request",runtime.app);
  t.after(()=>new Promise(r=>{server.close(()=>{runtime.db.close();r();});server.closeIdleConnections();}));
  const call=(p,body,method=body===undefined?"GET":"POST",token=rootToken,extra={})=>fetch(url+p,{method,headers:{"Content-Type":"application/json",Origin:url,...(token?{Authorization:"Bearer "+token}:{}),...extra},body:body===undefined?undefined:JSON.stringify(body)});
  const guest=async(label="Private administrator note")=>{const invite=await(await call("/api/v1/invites",{label})).json();const token=randomBytes(32).toString("hex");const result=await(await call("/auth/accept",{invite:invite.code,apiToken:token},"POST",null)).json();assert.equal(result.ok,true);const me=await(await call("/api/v1/me",undefined,"GET",token)).json();return{token,id:me.member.id};};

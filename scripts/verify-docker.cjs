@@ -10,7 +10,7 @@ const envFile = path.join(dir, ".env.docker");
 const project = `quickshare-verify-${process.pid}`;
 let token;
 const environment = { ...process.env };
-for (const key of ["QUICKSHARE_TOKEN", "BASE_URL", "QUICKSHARE_PORT", "COMPOSE_FILE", "COMPOSE_PROJECT_NAME", "COMPOSE_PROFILES"]) delete environment[key];
+for (const key of ["QUICKSHARE_TOKEN", "BASE_URL", "QUICKSHARE_PORT", "COMPOSE_FILE", "COMPOSE_PROJECT_NAME", "COMPOSE_PROFILES", "DATABASE_URL", "DATABASE_AUTH_TOKEN", "OBJECT_STORE", "OBJECTS_PATH", "S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY", "S3_REGION", "S3_PREFIX", "S3_FORCE_PATH_STYLE"]) delete environment[key];
 const compose = (...args) => execFileSync("docker", ["compose", "-f", path.join(root, "docker-compose.yml"), "--env-file", envFile, "-p", project, ...args], { cwd: root, env: environment, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 300000 });
 async function main() {
   try {
@@ -49,6 +49,9 @@ async function main() {
     assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
     assert.equal(png.readUInt32BE(16), 1200);
     assert.equal(png.readUInt32BE(20), 630);
+    const backup = JSON.parse(compose("exec", "-T", "quickshare", "node", "scripts/migrate-storage.js", "--backup-only", "--backup", "/app/data/recovery-check"));
+    assert.ok(backup.objects >= 2);
+    assert.equal(backup.mode, "backup");
     const before = await (await call("/api/v1/account")).json();
     // Recreate the container, not merely the Node process, while preserving its volume.
     compose("up", "-d", "--force-recreate", "--wait", "--wait-timeout", "90");
