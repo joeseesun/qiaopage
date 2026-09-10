@@ -13,7 +13,8 @@ if (
     "Usage: node scripts/install-cloud.cjs cloudflare|vercel [project-name]",
   );
 process.chdir(path.resolve(__dirname, ".."));
-const file = ".env." + provider,
+process.umask(0o077);
+const file = ".env." + provider + (name === "quickshare-agent" ? "" : "-" + name),
   cli = provider === "vercel" ? ["--yes", "vercel@59.15.1"] : ["wrangler"];
 function run(args, options = {}) {
   const result = spawnSync("npx", [...cli, ...args], {
@@ -75,7 +76,7 @@ try {
   } else {
     run(["link", "--yes", "--project", name]);
     const prior = read();
-    run(["env", "pull", file, "--environment", "production"]);
+    run(["env", "pull", file, "--environment", "production", "--yes"]);
     let env = read();
     if (!env.TURSO_DATABASE_URL && !env.DATABASE_URL)
       run([
@@ -92,7 +93,7 @@ try {
       ]);
     if (!env.BLOB_READ_WRITE_TOKEN && !env.BLOB_STORE_ID)
       run(["blob", "create-store", name, "--access", "private", "--yes"]);
-    run(["env", "pull", file, "--environment", "production"]);
+    run(["env", "pull", file, "--environment", "production", "--yes"]);
     env = read();
     if (!env.OBJECT_STORE) {
       env.OBJECT_STORE = "vercel-blob";
