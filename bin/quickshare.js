@@ -7,7 +7,7 @@ const { parseArgs } = require("node:util");
 const configPath =
   process.env.QUICKSHARE_CONFIG ||
   path.join(os.homedir(), ".config/quickshare/config.json");
-const CLI_VERSION = "1.4.0";
+const CLI_VERSION = "1.4.1";
 const { values: flags, positionals: args } = parseArgs({
   allowPositionals: true,
   options: {
@@ -74,7 +74,7 @@ Publish FILE or DIRECTORY.
   Retrying an identical publish command returns the original site. Use update to change it.
   --request-id ID starts an explicit publication (16–128 letters, numbers, _ or -); reuse it to retry.
 
-Quickshare — publish an HTML or Markdown work\n\n  quickshare login --url https://www.t5t6.com --token-stdin\n  quickshare publish index.html --slug my-work --title "我的作品" --tags 工具,实验 --capture\n  quickshare update my-work index.html [--title ...] [--description ...]\n  quickshare list [--all] [--json]\n  quickshare get my-work [--output saved.html]\n  quickshare unpublish my-work\n  quickshare restore my-work\n  quickshare doctor\n\nOptions: --description TEXT --tags a,b --theme sage|sand|ink|rose --draft --json --cover cover.png --capture\nMarkdown (.md/.markdown) is rendered as styled HTML.\nDirectories need index.html or index.md; max 100 files, 8 MB total, 5 MB per file.\nToken: saved by login or QUICKSHARE_TOKEN; config: QUICKSHARE_CONFIG.\n`;
+Quickshare — publish an HTML or Markdown work\n\n  quickshare login --url https://share.example.com --token-stdin\n  quickshare publish index.html --slug my-work --title "我的作品" --tags 工具,实验 --capture\n  quickshare update my-work index.html [--title ...] [--description ...]\n  quickshare list [--all] [--json]\n  quickshare get my-work [--output saved.html]\n  quickshare unpublish my-work\n  quickshare restore my-work\n  quickshare doctor\n\nOptions: --description TEXT --tags a,b --theme sage|sand|ink|rose --draft --json --cover cover.png --capture\nMarkdown (.md/.markdown) is rendered as styled HTML.\nDirectories need index.html or index.md; max 100 files, 8 MB total, 5 MB per file.\nToken: saved by login or QUICKSHARE_TOKEN; config: QUICKSHARE_CONFIG.\n`;
 function normalizeUrl(raw) {
   const u = new URL(raw);
   if (
@@ -206,12 +206,9 @@ async function main() {
     throw new Error(
       "Different server: run login for that server or provide QUICKSHARE_TOKEN explicitly.",
     );
-  config.url = normalizeUrl(
-    flags.url ||
-      process.env.QUICKSHARE_URL ||
-      config.url ||
-      "https://www.t5t6.com",
-  );
+  const serverUrl = flags.url || process.env.QUICKSHARE_URL || config.url;
+  if (!serverUrl) throw new Error("No Quickshare server configured. Run login --url URL or set QUICKSHARE_URL.");
+  config.url = normalizeUrl(serverUrl);
   config.token = process.env.QUICKSHARE_TOKEN || config.token;
   if (!config.token) throw new Error("Run quickshare login first.");
   let result;

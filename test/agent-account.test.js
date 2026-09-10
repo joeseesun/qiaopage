@@ -91,7 +91,7 @@ async function cliFixture(t,fixtureData){
 test("portable CLI discovers permissions, changes own account, stores generated passwords privately and previews without saving",async t=>{
  const f=await fixture(t),{run,dir,config}=await cliFixture(t,f),originalConfig=fs.readFileSync(config,"utf8");
  const who=await run(["whoami"]);assert.equal(who.data.account.id,f.a.id);
- const cap=await run(["capabilities"]);assert.equal(cap.data.cliVersion,"1.4.0");
+ const cap=await run(["capabilities"]);assert.equal(cap.data.cliVersion,"1.4.1");
  const renamed=await run(["account","--username","agent-user"]);assert.equal(renamed.code,0,renamed.stderr);
  const file=path.join(dir,"password.txt"),generated=await run(["account","--generate-password","--output",file]);
  assert.equal(generated.code,0,generated.stderr);assert.equal(generated.data.passwordVerified,true);
@@ -138,4 +138,18 @@ test("a lost account response preserves the generated password for verification 
  const password=fs.readFileSync(file,"utf8");assert.ok(!lost.stderr.includes(password.trim()));
  const checked=await run(["account","--verify-password-stdin"],password);assert.equal(checked.code,0,checked.stderr);assert.equal(checked.data.valid,true);
  assert.equal(f.db.prepare("SELECT account_revision n FROM members WHERE id=?").get(f.a.id).n,1);
+});
+
+test("unconfigured self-hosted CLI never sends an environment token to a default server", async t => {
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),"quickshare-server-config-"));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const hook=path.join(dir,"no-network.cjs"), marker=path.join(dir,"network-attempt");
+ fs.writeFileSync(hook,`global.fetch=()=>{require('node:fs').writeFileSync(${JSON.stringify(marker)},'attempt');throw new Error('Network disabled in test');};`);
+ const env={...process.env,QUICKSHARE_TOKEN:rootToken,QUICKSHARE_CONFIG:path.join(dir,"missing.json")};delete env.QUICKSHARE_URL;
+ const result=await new Promise((resolve,reject)=>{
+  const child=spawn(process.execPath,["--require",hook,path.resolve(__dirname,"../bin/quickshare.js"),"whoami","--json"],{env,stdio:["ignore","pipe","pipe"]});
+  let out="",err="";child.stdout.on("data",d=>out+=d);child.stderr.on("data",d=>err+=d);child.on("error",reject);child.on("close",code=>resolve({code,out,err}));
+ });
+ assert.equal(result.code,1);assert.match(result.err,/No Quickshare server configured/);
+ assert.equal(fs.existsSync(marker),false);assert.ok(!(result.err+result.out).includes(rootToken));
 });
