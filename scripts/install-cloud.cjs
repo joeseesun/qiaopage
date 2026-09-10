@@ -4,6 +4,7 @@ const fs = require("node:fs"),
   { spawnSync } = require("node:child_process"),
   { randomBytes } = require("node:crypto"),
   dotenv = require("dotenv");
+const {mergePulledEnvironment} = require("../lib/deployment-env");
 const [provider, name = "quickshare-agent"] = process.argv.slice(2);
 if (
   !["cloudflare", "vercel"].includes(provider) ||
@@ -77,7 +78,7 @@ try {
     run(["link", "--yes", "--project", name]);
     const prior = read();
     run(["env", "pull", file, "--environment", "production", "--yes"]);
-    let env = read();
+    let env = mergePulledEnvironment(read(), prior);
     if (!env.TURSO_DATABASE_URL && !env.DATABASE_URL)
       run([
         "integration",
@@ -94,7 +95,7 @@ try {
     if (!env.BLOB_READ_WRITE_TOKEN && !env.BLOB_STORE_ID)
       run(["blob", "create-store", name, "--access", "private", "--yes"]);
     run(["env", "pull", file, "--environment", "production", "--yes"]);
-    env = read();
+    env = mergePulledEnvironment(read(), env);
     if (!env.OBJECT_STORE) {
       env.OBJECT_STORE = "vercel-blob";
       run(["env", "add", "OBJECT_STORE", "production"], {input: env.OBJECT_STORE});
@@ -109,6 +110,7 @@ try {
     }
     save(env);
     run(["deploy", "--prod", "--yes"]);
+    if (env.QUICKSHARE_TOKEN === "[SENSITIVE]") console.log("The existing administrator secret is protected and cannot be downloaded. Keep your existing administrator connection; this local env file cannot create an administrator login. The server secret was not changed.");
     console.log(
       "Vercel deployed. Keep " +
         file +

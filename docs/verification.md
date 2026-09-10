@@ -10,7 +10,7 @@
 
 ## 本地与原生运行时
 
-- `npm run check`、55 项 Node 测试：认证、所有权、并发、版本、原文保真、上传分块、身份隔离、哈希、限额、过期、清理、大响应与迁移。
+- `npm run check`、56 项 Node 测试：认证、所有权、并发、版本、原文保真、安装密钥保留、上传分块、身份隔离、哈希、限额、过期、清理、大响应与迁移。
 - `npm run verify:cloudflare`：真实本地 Workers 运行时，空数据安装、邀请、身份、幂等发布、冲突、恢复、OG、账号修改、8 MiB CLI 上传、5 MiB 资源读取、下架恢复，再终止并重启 Worker 核验持久数据。
 - `npm run verify:ui`：真实 Chrome 桌面和 390px：首页、复制 Prompt、朋友邀请、文件夹上传、原文隔离、历史、密码和停用。已检查截图。
 - Docker / libSQL / MinIO 原有验收保留，并由 CI 继续执行。
