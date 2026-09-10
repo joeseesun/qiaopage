@@ -54,7 +54,7 @@ docker run --rm --user "$(id -u):$(id -g)" \
 docker compose --env-file .env.docker up -d --build --wait
 ```
 
-Open http://127.0.0.1:8090. Generate a private, one-use administrator login link valid for five minutes:
+Open [the local home](http://127.0.0.1:8090). Generate a private, one-use administrator login link valid for five minutes:
 
 ```sh
 docker compose --env-file .env.docker exec -T quickshare \
@@ -76,7 +76,7 @@ npm run install:vercel -- qiaopage
 
 Official CLI installers provision or reuse resources and preserve credentials. You need your own platform account and must complete login, terms, and any billing activation yourself. Keep an existing installation's project name when upgrading. Cloudflare uses SQLite Durable Objects + private R2; Vercel uses Turso + private Blob. Browser deploy buttons are not yet verified; use the CLI paths. See [cloud instructions](docs/cloud-install.md).
 
-For local development: `npm ci`, `npm run setup`, `npm start`, then open http://127.0.0.1:3000. Run `node bin/quickshare.js dashboard` in another terminal to get an administrator login link.
+For local development: `npm ci`, `npm run setup`, `npm start`, then open [the local home](http://127.0.0.1:3000). Run `node bin/quickshare.js dashboard` in another terminal to get an administrator login link.
 
 ## Agent and CLI usage
 

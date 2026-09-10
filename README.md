@@ -118,7 +118,7 @@ docker run --rm --user "$(id -u):$(id -g)" \
 docker compose --env-file .env.docker up -d --build --wait
 ```
 
-打开 **http://127.0.0.1:8090**。然后获取五分钟有效、仅可使用一次的管理员登录链接：
+打开 [**本地首页**](http://127.0.0.1:8090)。然后获取五分钟有效、仅可使用一次的管理员登录链接：
 
 ```sh
 docker compose --env-file .env.docker exec -T quickshare \
@@ -158,7 +158,7 @@ npm run setup
 npm start
 ```
 
-访问 http://127.0.0.1:3000。另开终端运行 `node bin/quickshare.js dashboard` 获取本地管理员登录链接。`.env` 和 Docker 的 `.env.docker` 独立保存。
+访问[本地首页](http://127.0.0.1:3000)。另开终端运行 `node bin/quickshare.js dashboard` 获取本地管理员登录链接。`.env` 和 Docker 的 `.env.docker` 独立保存。
 
 </details>
 
