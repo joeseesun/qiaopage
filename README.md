@@ -25,10 +25,17 @@ Quickshare 是给自己和朋友使用的发布服务。朋友把邀请 Prompt �
 | --- | --- | --- |
 | Docker Compose | 已通过容器创建、发布和重建验收 | 持久卷中的 SQLite + 私有文件目录 |
 | Node.js 24+ / VPS | 当前运行方式 | SQLite / libSQL + 文件目录 / S3 |
-| Cloudflare Workers | 规划中，尚不可一键安装 | 计划 D1 + R2 |
-| Vercel | 规划中，尚不可一键安装 | 计划托管数据库 + 对象存储 |
+| Cloudflare Workers | 官方 CLI 安装与云端验收 | SQLite Durable Object + 私有 R2 |
+| Vercel | 官方 CLI 安装与云端验收 | Turso / libSQL + 私有 Vercel Blob |
 
-[存储配置与旧数据迁移](docs/storage.md) · [多平台实施方案](docs/portable-deployment.md)。云端存储和上传适配通过独立验收后才添加部署按钮。
+[云端一条命令安装](docs/cloud-install.md) · [存储配置与旧数据迁移](docs/storage.md) · [验收范围](docs/verification.md)。首次平台登录和服务条款仍由本人确认。
+
+```sh
+npm ci --ignore-scripts
+npm run install:cloudflare -- quickshare-agent
+# 或
+npm run install:vercel -- quickshare-agent
+```
 
 ## 快速开始：Docker
 
@@ -119,7 +126,7 @@ UI 验收需要本机 Chrome。Docker 和远程后端验收使用独立临时容
 
 Quickshare turns agent-created HTML, Markdown, and static folders into stable, updateable links. Friends connect by pasting an invitation prompt into their agent; password registration is optional. Web, CLI, and agents share the same identity and publishing API.
 
-This is a separate development repository derived from Quickshare. Docker Compose and Node.js 24+ are supported. **Cloudflare and Vercel deployments are planned, not available yet**; neither should run SQLite or local objects on ephemeral storage. Async local SQLite / remote libSQL and private filesystem / S3-compatible storage are implemented; see [storage and migration](docs/storage.md).
+This is a separate development repository derived from Quickshare. Docker Compose and Node.js 24+ are supported. Cloudflare Workers uses SQLite Durable Objects + private R2; Vercel uses Turso + private Blob. Both have official-CLI installation scripts and live deployment verification. See [cloud installation](docs/cloud-install.md). Neither stores persistent data on ephemeral disk. Async local SQLite / remote libSQL and private filesystem / S3-compatible storage are implemented; see [storage and migration](docs/storage.md).
 
 Use the Docker commands above. Open the dashboard link, configure your account, and invite friends. The generated `.env.docker` contains a private administrator secret. Public instances require HTTPS and an exact `BASE_URL`. See [Docker instructions](DOCKER_INSTALL.md) for persistent volumes, backups, and upgrades. No default password or prebuilt registry image is provided.
 

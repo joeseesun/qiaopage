@@ -1,16 +1,36 @@
-# 独立安装验收
+# 验收记录
 
-2026-09-10，当前导入版本。
+2026-09-10。生产迁移、独立云端安装、本地测试分别记录；代码提交和 CI 状态以对应 PR 为准。
 
-- 独立目录 `npm ci --ignore-scripts` 成功，无旧仓库依赖软链接。
-- `npm run check` 通过；`npm test` 44 项通过。
-- `npm run verify:ui` 通过：真实 Chrome 桌面和 390px，首页、邀请、朋友接入、目录发布、隔离、版本、复制、密码与停用。已检查首页桌面与移动截图，见 `docs/assets/`。
-- `node scripts/verify-docker.cjs` 通过：用 Docker 初始化 600 权限配置并验证再次初始化保留原密钥；非 root/只读根目录启动；首页、指南、CLI、Skill 下载；未认证接口拒绝；HTML 原样发布与 opaque sandbox；1200×630 中文 OG PNG；容器重建保留账号和网站；版本冲突及更新。
-- Docker 验收仅创建独立测试 Compose 项目与临时卷，结束后已清理。测试未连接生产账户。
-- 导入文件已检查真实 Quickshare 凭据、GitHub Token 模式、私有路径、数据库和备份，无匹配。
+## 生产数据迁移
 
-Docker 本地验证不等同 Cloudflare / Vercel 部署验收。两种云适配尚未实现，README 不提供不可用的部署按钮。旧生产服务没有因本次拆仓库被迁移或重启。
+既有生产服务完成存储重构迁移：14 个站点、11 条历史、2 名成员。迁移前后完整逻辑审计一致，14 个公开页面与 16 个资源逐字节读取一致。备份任务已包含数据库和对象文件，并把完整备份恢复到隔离目录核验。HTTPS、健康检查、账号身份、opaque sandbox、桌面及 390px 页面通过。共享主机的其他服务未改变。
 
-CI 对 PR 运行 Node 检查、44 项测试，以及 Linux Docker 集成验收；具体状态以对应提交的 GitHub Actions 为准。
+生产运行的是已合并的存储版本 8cb1648；后续云适配先在独立安装测试，没有把生产数据复制到测试平台。
 
-独立仓库 CLI / Skill 为 1.4.1：未配置服务地址时拒绝发起网络请求，避免将自建站 Token 发往旧默认站点。此项已增加禁用真实网络的回归测试。既有生产安装不因新仓库改动而自动升级。
+## 本地与原生运行时
+
+- `npm run check`、55 项 Node 测试：认证、所有权、并发、版本、原文保真、上传分块、身份隔离、哈希、限额、过期、清理、大响应与迁移。
+- `npm run verify:cloudflare`：真实本地 Workers 运行时，空数据安装、邀请、身份、幂等发布、冲突、恢复、OG、账号修改、8 MiB CLI 上传、5 MiB 资源读取、下架恢复，再终止并重启 Worker 核验持久数据。
+- `npm run verify:ui`：真实 Chrome 桌面和 390px：首页、复制 Prompt、朋友邀请、文件夹上传、原文隔离、历史、密码和停用。已检查截图。
+- Docker / libSQL / MinIO 原有验收保留，并由 CI 继续执行。
+
+## 真实 Cloudflare
+
+通过 Wrangler 4.130.0 创建私有 R2，首次部署 SQLite Durable Object + Worker。随后通过一条命令安装脚本重新部署，账号和链接保持。
+
+云端通过：通用 API 验收、8 MiB CLI 文件包、5 MiB 原文资源、下架恢复、1200×630 中文 OG、更新密码、重部署读取。PITR 实测先保存 checkpoint、写入测试标记、恢复，再确认原账号和文件可读、后写入标记不存在。
+
+PITR 不等同异地备份，也不能恢复已删除的 R2 bucket。Cloudflare SQL 数据库和 R2 对象均独立于原生产服务。
+
+## 真实 Vercel
+
+通过 Vercel CLI 59.15.1 创建项目，Marketplace 自动连接 Turso Starter，创建私有 Blob。平台服务条款经本人确认后继续。专用 CJS 构建解决函数运行时的 ESM / 模板加载差异。
+
+云端通过：通用 API 验收、8 MiB CLI 文件包、5 MiB 流式资源、下架恢复、OG、账号修改及重新部署后的身份和原页面。Turso 与引用的 Blob 对象导出成完整备份，恢复到隔离 SQLite + 文件实例，核验身份、HTML、1 MiB 资源和版本历史。
+
+两个平台均已执行桌面 / 390px 真实浏览器读回。网页大文件上传另用 `scripts/verify-browser-upload.cjs` 验证真实 Cookie 会话和分块传输。
+
+## 范围边界
+
+当前验收对象是两个独立测试安装，没有将生产域名或生产账号搬到 Cloudflare / Vercel。CLI 安装流程经过真实执行；公开浏览器部署按钮尚未测试，仓库仍为私有。没有发布预构建容器镜像或正式发行版。

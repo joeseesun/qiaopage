@@ -53,6 +53,7 @@ async function createApp(options = {}) {
     const repository = new WorkRepository(db, content);
     await repository.initialize();
     const app = asyncRoutes(express());
+    if (options.streamResponses) app.use(require("./lib/stream-responses"));
     const baseUrl = (
       options.baseUrl ||
       process.env.BASE_URL ||
@@ -61,26 +62,44 @@ async function createApp(options = {}) {
     app.disable("x-powered-by");
     app.set("views", path.join(__dirname, "views/showcase"));
     app.set("view engine", "ejs");
+    if (!options.render) app.engine("ejs", require("ejs").__express);
     app.locals.baseUrl = baseUrl;
     app.locals.agentPrompt = installPrompt(baseUrl);
-    app.locals.portalVersion = createHash("sha256")
-      .update(
-        [
-          "portal.css",
-          "portal.js",
-          "sharing.js",
-          "agent.js",
-          "style.css",
-          "site.js",
-          "favicon.svg",
-        ]
-          .map((name) =>
-            fs.readFileSync(path.join(__dirname, "public/showcase", name)),
-          )
-          .join("\n"),
-      )
-      .digest("hex")
-      .slice(0, 12);
+    app.locals.portalVersion =
+      options.portalVersion ||
+      createHash("sha256")
+        .update(
+          [
+            "portal.css",
+            "portal.js",
+            "sharing.js",
+            "agent.js",
+            "style.css",
+            "site.js",
+            "favicon.svg",
+          ]
+            .map((name) =>
+              fs.readFileSync(path.join(__dirname, "public/showcase", name)),
+            )
+            .join("\n"),
+        )
+        .digest("hex")
+        .slice(0, 12);
+    if (options.render)
+      app.render = (view, locals, callback) => {
+        try {
+          callback(
+            null,
+            options.render(view, {
+              ...app.locals,
+              ...locals._locals,
+              ...locals,
+            }),
+          );
+        } catch (error) {
+          callback(error);
+        }
+      };
     app.locals.siteName = "Quickshare";
     app.locals.formatDate = (value) =>
       new Date(value)
@@ -109,10 +128,13 @@ async function createApp(options = {}) {
         res.set("X-Robots-Tag", "noindex");
       next();
     });
-    app.use(
-      "/assets",
-      express.static(path.join(__dirname, "public/showcase"), { maxAge: "1h" }),
-    );
+    if (!options.render)
+      app.use(
+        "/assets",
+        express.static(path.join(__dirname, "public/showcase"), {
+          maxAge: "1h",
+        }),
+      );
     // Authenticate mutations before parsing an uploaded document.
     app.use("/api/v1", async (req, res, next) =>
       ["GET", "HEAD"].includes(req.method) ? next() : guard(req, res, next),
@@ -181,6 +203,7 @@ async function createApp(options = {}) {
       baseUrl,
       content,
       authenticated,
+      renderSvg: options.renderSvg,
     });
     app.get("/healthz", async (req, res) => {
       await db.prepare("SELECT 1").get();
@@ -282,13 +305,10 @@ async function createApp(options = {}) {
           .get(req.member.id, requestId);
         if (previous) {
           if (previous.payload_hash !== payloadHash)
-            return res
-              .status(409)
-              .json({
-                code: "REQUEST_CHANGED",
-                error:
-                  "这次发布的内容已改变。请恢复原内容重试，或发起新的发布。",
-              });
+            return res.status(409).json({
+              code: "REQUEST_CHANGED",
+              error: "这次发布的内容已改变。请恢复原内容重试，或发起新的发布。",
+            });
           const row = await find(previous.slug);
           if (!row || row.owner_id !== req.member.id)
             return res
@@ -312,12 +332,10 @@ async function createApp(options = {}) {
           .json({ error: "slug 需为 1–64 位小写英文字母、数字或单连字符。" });
       const old = await find(slug);
       if (creating && old)
-        return res
-          .status(409)
-          .json({
-            code: "SLUG_TAKEN",
-            error: "这个地址已被使用，请换一个，或留空让系统生成。",
-          });
+        return res.status(409).json({
+          code: "SLUG_TAKEN",
+          error: "这个地址已被使用，请换一个，或留空让系统生成。",
+        });
       if (old && !owns(req, old))
         return res.status(404).json({ error: "内容不存在或无权编辑。" });
       let prepared;
@@ -342,11 +360,9 @@ async function createApp(options = {}) {
       )
         return res.status(409).json({ error: "每位成员最多 100 个站点。" });
       if (old && req.body.revision !== old.revision)
-        return res
-          .status(409)
-          .json({
-            error: "作品已存在或版本已改变。请使用 update，刷新后重试。",
-          });
+        return res.status(409).json({
+          error: "作品已存在或版本已改变。请使用 update，刷新后重试。",
+        });
       if (!old && req.body.revision !== undefined)
         return res.status(409).json({ error: "作品不存在，无法更新。" });
       const {
@@ -512,12 +528,10 @@ async function createApp(options = {}) {
         return {};
       });
       if (outcome.error)
-        return res
-          .status(outcome.status)
-          .json({
-            error: outcome.error,
-            ...(outcome.code ? { code: outcome.code } : {}),
-          });
+        return res.status(outcome.status).json({
+          error: outcome.error,
+          ...(outcome.code ? { code: outcome.code } : {}),
+        });
       if (outcome.replay) {
         const { html, files, cover, ...work } = rowToWork(
           await find(outcome.replay),
@@ -533,6 +547,7 @@ async function createApp(options = {}) {
       res.status(old ? 200 : 201).json({ work });
     }
     const publishWork = writeWork;
+    await require("./lib/uploads").uploads(app, indexRoutes, db, publishWork);
     app.post("/api/v1/works", publishWork);
     app.put("/api/v1/works/:slug", publishWork);
     indexRoutes.patch("/api/v1/works/:slug", async (req, res) => {

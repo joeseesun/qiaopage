@@ -10,5 +10,5 @@ Read README.md, DOCKER_INSTALL.md and docs/portable-deployment.md before meaning
 - Publishing preserves source HTML by default. Sharing enhancement and search indexing are explicit opt-ins. No watermark, attribution or promotions added to user content.
 - Stable slugs, idempotent publishing, revision CAS, atomic versions and recoverable unpublish/restore are required. Use additive migrations.
 - Run npm run check and npm test. Docker changes require npm run verify:docker. UI changes require npm run verify:ui and actual desktop/390px screenshot inspection.
-- Cloudflare and Vercel are planned, not implemented. Do not add deploy buttons or mark them supported until persistence, authorization, uploads, restart and recovery have passed on those platforms.
+- Cloudflare uses SQLite Durable Objects + R2; Vercel uses libSQL + private Blob. Cloud changes require native runtime, authorization, full-size uploads, redeploy persistence and recovery verification. CLI verification is not a browser deploy-button test. Keep private repository visibility unchanged.
 - Report local, committed, pushed, CI, deployed and live-tested states separately.

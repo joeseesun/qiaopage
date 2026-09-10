@@ -17,6 +17,18 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm test
+      - run: node scripts/build-vercel.cjs
+  cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run verify:cloudflare
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 15

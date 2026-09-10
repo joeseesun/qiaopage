@@ -1,48 +1,33 @@
-# 独立仓库与多平台部署
+# 多平台架构与状态
 
-2026-09-10。状态：Docker 已实测；Cloudflare / Vercel 为待实现设计，不宣称一键部署可用。
+2026-09-10。Quickshare Agent 已提供 Docker / VPS、Cloudflare Workers 和 Vercel 的独立运行方式。[安装指南](cloud-install.md)记录 CLI、登录、资源创建与恢复步骤；[验收记录](verification.md)区分本地、云端和浏览器按钮。
 
-## 仓库边界
+| 平台 | 数据库 | 文件存储 | 运行时 |
+| --- | --- | --- | --- |
+| Docker / VPS | SQLite 或 libSQL | 持久目录或私有 S3 | Node.js 24 |
+| Cloudflare | SQLite Durable Object | 私有 R2 binding | Workers + Node HTTP bridge，预编译 EJS，WASM OG |
+| Vercel | Turso / libSQL | 私有 Blob | Node 函数，专用 CJS 构建，流式大响应 |
 
-保留 Quickshare 产品名；新仓库建议 `quickshare-agent`，旧 `quickshare` 保留旧项目历史。新仓库以当前运行代码为起点，携带 CLI、Skill 生成器、测试、Docker 和通用文档。旧路由、旧认证、设计试稿、真实数据、凭据、个人路径、阿里云 DNS 管理和私有运维记录不进入新仓库。
+业务规则共用：账号、邀请、所有权、配额、幂等 requestId、稳定 slug、revision CAS、历史恢复、opaque sandbox 和可选分享增强。新默认仍为不进入展厅、凭链接访问；不添加水印或署名。
 
-拆仓库不改变线上域名、网站 slug、成员 ID 或凭据。迁移部署需另外验证数据和版本兼容性。现有安装连接继续访问原来的服务。
+## 为什么 Cloudflare 使用 Durable Object
 
-## 部署目标
+现有账号和发布事务包含条件读取、身份复验与多步更新，需要真正的事务上下文。SQLite Durable Object 支持在 `storage.transaction` 内运行 SQL，使这些规则无需改写成分散的 D1 batch。每个安装一个 `primary` 对象，异步事务通过队列隔离；文件内容移到 R2，因此数据库行不承载整个网站。
 
-| 目标 | 持久化 | 实施状态 |
-| --- | --- | --- |
-| Docker / VPS | SQLite + 文件目录；也可 libSQL + S3 | 镜像、Compose、初始化、健康检查与重建保留数据已实测 |
-| Cloudflare Workers | D1 存账号与索引，R2 存不可变内容和版本 | 待改造及线上验收 |
-| Vercel | libSQL + S3；其他托管数据库需独立适配 | 待改造及线上验收 |
+该架构面向自己和朋友，不宣称大规模多租户吞吐。未来需扩展时，应先明确跨账户事务和迁移策略，再拆分对象。无需把今天的产品引入额外服务。
 
-不把反向代理到现有私人服务器称为独立部署，也不依赖临时磁盘保存账号和站点。
+## 文件与平台限制
 
-## 为什么不是加两个配置文件
+内容先写入不可变对象，再在短事务中切换索引并保留历史。CLI / Skill 1.5.0、网页和 API 的分块上传共用同一发布入口；不会因为运行在不同平台而绕过权限或验证。
 
-数据库和对象存储已完成第一阶段重构，见[存储说明](storage.md)：异步 SQLite / libSQL 接口，文件目录 / S3 / R2 binding 适配，先写对象再事务提交索引，以及可重试迁移和整套备份恢复。旧内联记录仍可读取。OG 仍使用原生 Resvg 和本地字体。
+Vercel 的 4.5 MB 请求限制由私有 512 KiB 分块解决，超过 3 MiB 的响应流式发送。分块在数据库中有成员归属、完整哈希、期限、会话数量和总大小限制，最终发布仍限制 5 MiB 单文件、8 MiB 总量。私有对象始终经过应用的发布状态与 sandbox 响应层读取。
 
-- Vercel 的函数实例没有共享的持久本地文件系统，不能把 SQLite 放进 `/tmp` 作为生产数据；函数请求和响应体上限 4.5 MB，现有 8 MB 文件包经 Base64 后会超限。
-- Cloudflare Workers 的 `node:sqlite` 只是非功能 stub。D1 单行/字符串/BLOB 上限 2 MB，不能直接搬运现有 8 MB 网站记录。
-- Cloudflare Containers 的磁盘也是临时的；只搬 Dockerfile 不能解决持久化。
+## 仓库与数据迁移
 
-来源：[Vercel SQLite](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel)、[函数限制](https://vercel.com/docs/functions/limitations)、[Workers Node 兼容性](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)、[D1 限制](https://developers.cloudflare.com/d1/platform/limits/)、[Containers 磁盘](https://developers.cloudflare.com/containers/concepts/architecture/)。
+独立仓库保留产品名称、API 和 CLI，旧仓库保留旧历史。2026-09-10 既有生产服务已迁移到数据库索引 + 私有对象目录：14 个站点、11 条历史、2 名成员，原地址和内容保留；迁移前后逻辑审计一致，完整备份与隔离恢复通过。生产目前运行已合并的存储版本；云端运行时适配先在两个独立测试安装验收，不会自动替换生产服务或搬走朋友的数据。
 
-## 推荐架构
+Cloudflare 的恢复使用数据库 PITR + 仍保留的不可变 R2 对象；Vercel 可完整导出为 SQLite + 文件并恢复到 Node / Docker。备份与恢复操作须覆盖账号、索引、历史和文件，不能只备份数据库。
 
-一套业务规则，平台存储适配。Web、CLI 和 Skill 使用相同 API 契约，账号身份、权限、slug、revision、幂等请求与分享默认值保持一致。
+当前仓库为私有。CLI 流程已实测；公开浏览器部署按钮未作为本次已通过的测试项目，也不改变仓库可见性。
 
-1. **已完成 SQLite / libSQL 部分。** 从服务中抽出账号、站点、版本、邀请的异步 repository 接口。事务在适配层内完成，不允许用多个无事务网络 SQL 模拟 `BEGIN/COMMIT`。
-2. **已完成存储与切换，自动回收尚未实现。** 内容改为不可变版本 manifest 和资产对象。先写对象，再通过数据库条件更新切换当前版本；失败的未引用对象可回收。新版本验证完整之前，公开地址继续读取上一版本。
-3. 上传改为创建会话 → 授权分块/直传 → finalize。发布成功才占用最终地址和版本；必须复验成员、路径、字节数、哈希和配额。支持重试、过期、冲突与清理，不让未授权对象直接公开。
-4. Cloudflare 适配 D1 + R2，事务性写入用数据库 batch/CAS；需要跨步骤序列化时由 Durable Object 协调。Cookie/Origin 和 opaque sandbox 规则保留。
-5. Vercel 复用已实现的 libSQL + S3 存储接口，适配函数运行时，直传避免 4.5 MB 函数载荷上限。资产公开时仍必须经过满足沙箱、撤销和权限规则的响应层，不能裸露不可撤销的公共对象 URL。
-6. OG 在发布侧生成或采用兼容运行时的 WASM 渲染；手动封面和原始 meta 的优先级不变。字体大小、CPU 与平台配额需真实验证。
-
-## 一键部署的完成标准
-
-点击按钮后由平台引导创建所需数据库、存储和 secrets，首次进入生成管理员身份；用户不手写 SQL、不手动拼连接串。缺少权限、存储或初始化失败时明确退出，不退化为内存库。
-
-每个平台独立验收：空账号安装 → 管理员接入 → 邀请朋友 → Agent 发布多文件站点 → 同地址更新 → 原文一致 → OG 预览 → 重建后数据仍在 → 并发冲突 → 下架/恢复 → 备份恢复。最后才添加部署按钮和“支持”标记。
-
-优先完成 Docker 和独立仓库，再做 Cloudflare 原生版，最后复用存储接口实现 Vercel。当前既有站点继续运行；本次未迁移线上数据。
+依据：[Cloudflare SQLite 事务与 PITR](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)、[Node HTTP bridge](https://developers.cloudflare.com/workers/runtime-apis/nodejs/http/)、[Vercel 函数限制](https://vercel.com/docs/functions/limitations)、[私有 Blob SDK](https://vercel.com/docs/vercel-blob/using-blob-sdk)。

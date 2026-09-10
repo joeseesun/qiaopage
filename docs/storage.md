@@ -86,6 +86,6 @@ docker compose --env-file .env.docker exec -T quickshare \
 - R2 binding：Miniflare 本地运行时与持久化重启测试。
 - `npm run verify:docker`：Node 24 镜像、文件持久卷、原文发布、备份命令和容器重建。
 
-这些是本地/CI 验证，未宣称 Turso、AWS 或 Cloudflare 线上账号验收。Cloudflare / Vercel 的原生运行时、一键部署及分块/直传仍见[多平台方案](portable-deployment.md)。
+Cloudflare Workers + R2、Vercel + Turso + 私有 Blob 已完成独立云端验收，见[验收记录](verification.md)和[云端安装](cloud-install.md)。AWS S3 未做真实账号验收；S3 协议测试使用 MinIO。
 
 接口依据：[libSQL TypeScript 客户端](https://docs.turso.tech/sdk/ts/reference)、[R2 S3 API](https://developers.cloudflare.com/r2/api/s3/api/)、[R2 Workers API](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/)、[Node SQLite](https://nodejs.org/api/sqlite.html)。
