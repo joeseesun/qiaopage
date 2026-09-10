@@ -19,13 +19,23 @@
     "verify:docker": "node scripts/verify-docker.cjs",
     "verify:ui": "node scripts/verify-friends-ui.cjs",
     "verify:backends": "node scripts/verify-backends.cjs",
-    "storage:migrate": "node scripts/migrate-storage.js"
+    "storage:migrate": "node scripts/migrate-storage.js",
+    "build:cloudflare": "node scripts/build-cloudflare.cjs",
+    "deploy:cloudflare": "wrangler deploy",
+    "deploy:vercel": "npx vercel@59.15.1 --prod",
+    "verify:cloudflare": "node scripts/verify-cloudflare.cjs",
+    "verify:deployment": "node scripts/verify-deployment.cjs",
+    "install:cloudflare": "node scripts/install-cloud.cjs cloudflare",
+    "install:vercel": "node scripts/install-cloud.cjs vercel",
+    "build:vercel": "node scripts/build-vercel.cjs"
   },
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-s3": "3.1129.0",
     "@libsql/client": "0.18.0",
     "@resvg/resvg-js": "2.6.2",
+    "@resvg/resvg-wasm": "2.6.2",
+    "@vercel/blob": "2.8.0",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
@@ -46,6 +56,8 @@
   },
   "author": "向阳乔木",
   "devDependencies": {
-    "miniflare": "4.20260730.0"
+    "esbuild": "0.28.1",
+    "miniflare": "4.20260730.0",
+    "wrangler": "4.130.0"
   }
 }

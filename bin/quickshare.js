@@ -7,7 +7,7 @@ const { parseArgs } = require("node:util");
 const configPath =
   process.env.QUICKSHARE_CONFIG ||
   path.join(os.homedir(), ".config/quickshare/config.json");
-const CLI_VERSION = "1.4.1";
+const CLI_VERSION = "1.5.0";
 const { values: flags, positionals: args } = parseArgs({
   allowPositionals: true,
   options: {
@@ -482,6 +482,20 @@ async function documentBody(file, flags, old = {}) {
   };
 }
 async function request(config, endpoint, method = "GET", body) {
+  const serialized = body ? JSON.stringify(body) : undefined;
+  if (["POST", "PUT"].includes(method) && /^\/api\/v1\/works(?:\/[^/]+)?$/.test(endpoint) && Buffer.byteLength(serialized || "") > 3*1024*1024) {
+    const bytes = Buffer.from(serialized);
+    const upload = await request(config, "/api/v1/uploads", "POST", {
+      method, slug:method === "PUT" ? decodeURIComponent(endpoint.split("/").pop()) : undefined,
+      bytes:bytes.length, sha256:require("node:crypto").createHash("sha256").update(bytes).digest("hex")
+    });
+    const target = "/api/v1/uploads/"+upload.id;
+    try {
+      for (let offset=0, part=0; offset<bytes.length; offset+=upload.chunkBytes, part++)
+        await request(config,target+"/chunks/"+part,"POST",{data:bytes.subarray(offset,offset+upload.chunkBytes).toString("base64")});
+      return await request(config,target+"/complete","POST",{});
+    } finally { await request(config,target,"DELETE").catch(()=>{}); }
+  }
   const res = await fetch(config.url + endpoint, {
     method,
     redirect: "error",
@@ -491,7 +505,7 @@ async function request(config, endpoint, method = "GET", body) {
       ...(endpoint.startsWith("/auth/") ? {Origin: config.url} : {}),
       ...(body ? { "Content-Type": "application/json" } : {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: serialized,
   });
   const text = await res.text();
   let data;

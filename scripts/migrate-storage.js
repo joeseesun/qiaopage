@@ -1,5 +1,7 @@
 "use strict";
 require("dotenv").config({ quiet: true });
+if (!process.env.DATABASE_URL && process.env.TURSO_DATABASE_URL) process.env.DATABASE_URL = process.env.TURSO_DATABASE_URL;
+if (!process.env.DATABASE_AUTH_TOKEN && process.env.TURSO_AUTH_TOKEN) process.env.DATABASE_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 const path = require("node:path");
 const { parseArgs } = require("node:util");
 const { randomBytes } = require("node:crypto");

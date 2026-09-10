@@ -11,11 +11,31 @@ let member,
 const grant = new URLSearchParams(location.hash.slice(1)).get("code");
 if (location.hash) history.replaceState(null, "", location.pathname);
 async function api(url, method = "GET", body) {
+  const serialized = body ? JSON.stringify(body) : undefined;
+  if (["POST", "PUT"].includes(method) && /^\/api\/v1\/works(?:\/[^/]+)?$/.test(url)) {
+    const bytes = new TextEncoder().encode(serialized || "");
+    if(bytes.length > 3*1024*1024) {
+      const hash = await crypto.subtle.digest("SHA-256",bytes);
+      const upload = await api("/api/v1/uploads","POST",{method,
+        slug:method === "PUT" ? decodeURIComponent(url.split("/").pop()) : undefined,
+        bytes:bytes.length,sha256:Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,"0")).join("")});
+      const target = "/api/v1/uploads/"+upload.id;
+      try {
+        for(let offset=0,part=0;offset<bytes.length;offset+=upload.chunkBytes,part++) {
+          const slice=bytes.subarray(offset,offset+upload.chunkBytes);
+          let binary="";
+          for(let start=0;start<slice.length;start+=8192) binary+=String.fromCharCode(...slice.subarray(start,start+8192));
+          await api(target+"/chunks/"+part,"POST",{data:btoa(binary)});
+        }
+        return await api(target+"/complete","POST",{});
+      } finally {await api(target,"DELETE").catch(()=>{});}
+    }
+  }
   const r = await fetch(url, {
     method,
     credentials: "same-origin",
     headers: body ? { "Content-Type": "application/json" } : {},
-    body: body ? JSON.stringify(body) : undefined,
+    body: serialized,
   });
   let data;
   try {

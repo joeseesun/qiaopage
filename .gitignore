@@ -12,3 +12,12 @@ coverage/
 .vercel/
 .wrangler/
 .dev.vars*
+
+.cloudflare-build/
+.agents/
+skills-lock.json
+
+.vercel-build/
+
+.wrangler-install.json
+.vercel

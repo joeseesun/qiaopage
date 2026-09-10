@@ -1,0 +1,16 @@
+.env*
+.dev.vars*
+.wrangler
+.cloudflare-build
+artifacts
+backups
+.data
+.agents
+.claude
+docs/assets
+*.sqlite*
+*.log
+
+.vercel-build
+
+.wrangler-install.json

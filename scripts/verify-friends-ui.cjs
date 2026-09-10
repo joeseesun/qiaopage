@@ -3,6 +3,14 @@ const { createApp } = require("../server");
 const fs = require("node:fs"),
   path = require("node:path"),
   assert = require("node:assert/strict");
+async function waitForClipboard(page, pattern) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const text = await page.evaluate(() => navigator.clipboard.readText());
+    if (pattern.test(text)) return text;
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  throw new Error("Clipboard did not contain the expected prompt");
+}
 const base = "http://127.0.0.1:39997",
   token = "local-browser-test-only-".repeat(3),
   root = path.join(__dirname, "..");
@@ -132,8 +140,7 @@ const base = "http://127.0.0.1:39997",
     await page.getByRole("button", {name:"朋友",exact:true}).click();
     await page.locator(`[data-friend-id="${friendRowId}"]`).getByText("已加入",{exact:true}).waitFor();
     await friend.locator("#workspace .workspace-agent [data-copy-agent]").click();
-    await friend.waitForFunction(async () => /本次连接码：[a-f0-9]{64}/.test(await navigator.clipboard.readText()));
-    assert.match(await friend.evaluate(() => navigator.clipboard.readText()), /本次连接码：[a-f0-9]{64}/);
+    await waitForClipboard(friend, /本次连接码：[a-f0-9]{64}/);
     await friend.locator("#account-button").click();
     await friend.locator("#password-form [name=username]").fill("xiaolin");
     await friend.locator("#password-form [name=password]").fill("qa-password-123456");
@@ -373,8 +380,7 @@ const base = "http://127.0.0.1:39997",
     await friend.locator(".site-row").waitFor();
     await friend.getByRole("button", { name: "安装与 CLI" }).click();
     await friend.locator("#guide-panel [data-copy-agent]").click();
-    await friend.waitForFunction(async () => /本次连接码：[a-f0-9]{64}/.test(await navigator.clipboard.readText()));
-    assert.match(await friend.evaluate(() => navigator.clipboard.readText()), /本次连接码：[a-f0-9]{64}/);
+    await waitForClipboard(friend, /本次连接码：[a-f0-9]{64}/);
     await friend.screenshot({
       path: path.join(root, "artifacts/friends-guide-mobile.png"),
       fullPage: true,
