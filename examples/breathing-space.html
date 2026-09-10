@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>呼吸之间</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #eee3dc;
+      color: #694a3d;
+      font: 16px/1.6 system-ui;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+    main {
+      text-align: center;
+      padding: 30px;
+      width: 100%;
+    }
+    small {
+      font: 12px monospace;
+      letter-spacing: 0.18em;
+    }
+    h1 {
+      font-size: 34px;
+      font-weight: 500;
+      margin: 12px 0;
+    }
+    p {
+      color: #84695b;
+    }
+    .space {
+      height: 330px;
+      display: grid;
+      place-items: center;
+    }
+    .circle {
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: #c99880;
+      display: grid;
+      place-content: center;
+      box-shadow:
+        0 0 0 28px #dcbda9,
+        0 0 0 55px #e5cfc0;
+      transition: transform 4s linear;
+      color: #4a3026;
+      font-size: 26px;
+    }
+    .circle.expand {
+      transform: scale(1.24);
+    }
+    button {
+      font: inherit;
+      background: #805d49;
+      color: #fff;
+      border: 0;
+      border-radius: 25px;
+      padding: 12px 28px;
+      cursor: pointer;
+    }
+    #round {
+      font-size: 13px;
+      min-height: 24px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .circle {
+        transition: none;
+      }
+    }
+    @media (max-width: 480px) {
+      .circle {
+        width: 155px;
+        height: 155px;
+      }
+      .space {
+        height: 300px;
+      }
+    }
+  </style>
+  <main>
+    <small>BETWEEN BREATHS</small>
+    <h1>给自己，一点空白。</h1>
+    <p>吸气四秒，呼气四秒。放下肩膀。</p>
+    <div class="space"><div class="circle" id="circle">准备</div></div>
+    <button id="start">开始呼吸</button>
+    <p id="round">跟随圆圈，慢慢来。</p>
+  </main>
+  <script>
+    let running = false,
+      inhaling = false,
+      cycles = 0,
+      timer;
+    const circle = document.querySelector("#circle"),
+      button = document.querySelector("#start"),
+      round = document.querySelector("#round");
+    function breathe() {
+      inhaling = !inhaling;
+      circle.textContent = inhaling ? "吸气" : "呼气";
+      circle.classList.toggle("expand", inhaling);
+      if (!inhaling) {
+        cycles++;
+        round.textContent = "第 " + cycles + " 次舒展呼吸";
+      }
+      timer = setTimeout(breathe, 4000);
+    }
+    button.onclick = () => {
+      running = !running;
+      button.textContent = running ? "结束练习" : "开始呼吸";
+      if (running) {
+        cycles = 0;
+        inhaling = false;
+        breathe();
+      } else {
+        clearTimeout(timer);
+        circle.classList.remove("expand");
+        circle.textContent = "慢慢来";
+        round.textContent = "完成 " + cycles + " 次呼吸，欢迎随时回来。";
+      }
+    };
+  </script>
+</html>

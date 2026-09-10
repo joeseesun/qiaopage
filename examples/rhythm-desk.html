@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>节奏桌面</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #e8b655;
+      color: #302b23;
+      font: 16px/1.6 system-ui;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    main {
+      width: min(920px, 94vw);
+      padding: 30px;
+    }
+    small {
+      font: 12px monospace;
+      letter-spacing: 0.15em;
+    }
+    h1 {
+      font-size: 44px;
+      margin: 5px 0 8px;
+    }
+    p {
+      color: #594c32;
+    }
+    .machine {
+      background: #efe1ba;
+      border: 2px solid #594c32;
+      border-radius: 15px;
+      padding: 24px;
+      box-shadow: 7px 8px 0 #ad7b32;
+      margin-top: 28px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 55px repeat(8, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin: 13px 0;
+    }
+    .row span {
+      font: 12px monospace;
+    }
+    .pad {
+      aspect-ratio: 1;
+      border: 1px solid #b5a47b;
+      background: #e5d7af;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .pad[aria-pressed="true"] {
+      background: #b95f39;
+      border-color: #864126;
+    }
+    .pad.playing {
+      outline: 3px solid #353f2d;
+      outline-offset: 2px;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    #play {
+      background: #343b2c;
+      color: #f4edda;
+      border: 0;
+      padding: 12px 25px;
+      border-radius: 25px;
+      font: inherit;
+      cursor: pointer;
+    }
+    input {
+      accent-color: #6e4f31;
+      width: 130px;
+    }
+    @media (max-width: 600px) {
+      main {
+        padding: 20px 12px;
+      }
+      h1 {
+        font-size: 34px;
+      }
+      .machine {
+        padding: 13px;
+      }
+      .row {
+        grid-template-columns: 35px repeat(8, 1fr);
+        gap: 5px;
+      }
+      .pad {
+        border-radius: 4px;
+      }
+      .row span {
+        font-size: 9px;
+      }
+      .controls {
+        gap: 13px;
+        font-size: 13px;
+      }
+    }
+  </style>
+  <main>
+    <small>RHYTHM DESK / 8 STEPS</small>
+    <h1>给今天，打个节拍。</h1>
+    <p>点亮格子，编排属于你的八拍循环。</p>
+    <div class="machine" id="machine"></div>
+    <div class="controls">
+      <button id="play">播放节奏</button
+      ><label
+        >速度 <input id="bpm" type="range" min="60" max="180" value="108" />
+        <output id="value">108</output> BPM</label
+      >
+    </div>
+  </main>
+  <script>
+    const machine = document.querySelector("#machine");
+    const patterns = [
+      [1, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 1, 0, 0, 0, 1, 0],
+      [1, 0, 1, 0, 1, 0, 1, 1],
+    ];
+    let audio,
+      running = false,
+      step = 0,
+      timer;
+    patterns.forEach((pattern, r) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      const label = document.createElement("span");
+      label.textContent = ["KICK", "SNARE", "HAT"][r];
+      row.append(label);
+      pattern.forEach((value, c) => {
+        const b = document.createElement("button");
+        b.className = "pad";
+        b.setAttribute(
+          "aria-label",
+          label.textContent + " 第 " + (c + 1) + " 拍",
+        );
+        b.setAttribute("aria-pressed", Boolean(value));
+        b.onclick = () => {
+          pattern[c] = 1 - pattern[c];
+          b.setAttribute("aria-pressed", Boolean(pattern[c]));
+        };
+        row.append(b);
+      });
+      machine.append(row);
+    });
+    function sound(r) {
+      const o = audio.createOscillator(),
+        g = audio.createGain();
+      o.type = ["sine", "triangle", "square"][r];
+      o.frequency.setValueAtTime([130, 210, 3200][r], audio.currentTime);
+      o.frequency.exponentialRampToValueAtTime(
+        [45, 80, 1500][r],
+        audio.currentTime + 0.12,
+      );
+      g.gain.setValueAtTime([0.5, 0.2, 0.035][r], audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.15);
+      o.connect(g).connect(audio.destination);
+      o.start();
+      o.stop(audio.currentTime + 0.16);
+    }
+    function tick() {
+      document.querySelectorAll(".row").forEach((row, r) => {
+        row
+          .querySelectorAll(".pad")
+          .forEach((b, c) => b.classList.toggle("playing", c === step));
+        if (patterns[r][step]) sound(r);
+      });
+      step = (step + 1) % 8;
+      timer = setTimeout(
+        tick,
+        30000 / Number(document.querySelector("#bpm").value),
+      );
+    }
+    document.querySelector("#play").onclick = async (e) => {
+      running = !running;
+      e.target.textContent = running ? "停止播放" : "播放节奏";
+      if (running) {
+        audio = audio || new AudioContext();
+        await audio.resume();
+        tick();
+      } else {
+        clearTimeout(timer);
+        document
+          .querySelectorAll(".playing")
+          .forEach((b) => b.classList.remove("playing"));
+        step = 0;
+      }
+    };
+    document.querySelector("#bpm").oninput = (e) =>
+      (document.querySelector("#value").value = e.target.value);
+  </script>
+</html>

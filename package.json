@@ -1,0 +1,44 @@
+{
+  "name": "quickshare-agent",
+  "version": "3.0.0",
+  "private": true,
+  "description": "面向 Agent 的邀请制网站发布服务 | Agent-first, invitation-only web publishing",
+  "main": "server.js",
+  "bin": {
+    "quickshare": "bin/quickshare.js"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js",
+    "check": "node --check server.js && node --check bin/quickshare.js && node --check public/showcase/site.js && node --check lib/markdown.js && node --check lib/accounts.js && node --check lib/files.js && node --check public/showcase/portal.js && node --check lib/agent.js && node --check public/showcase/agent.js && node --check lib/sharing.js && node --check public/showcase/sharing.js",
+    "verify:docker": "node scripts/verify-docker.cjs",
+    "verify:ui": "node scripts/verify-friends-ui.cjs"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "highlight.js": "11.12.0",
+    "htmlparser2": "12.0.0",
+    "marked": "18.0.12",
+    "sanitize-html": "2.17.7"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.58.2"
+  },
+  "overrides": {
+    "qs": "6.16.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joeseesun/quickshare-agent.git"
+  },
+  "author": "向阳乔木"
+}

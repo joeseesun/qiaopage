@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>一刻 · 专注时钟</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #e2eadd;
+      color: #244a36;
+      font: 16px/1.6 system-ui;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    .app {
+      width: min(600px, 100%);
+      padding: 32px;
+      text-align: center;
+    }
+    .top {
+      font-size: 14px;
+      letter-spacing: 0.15em;
+    }
+    .ring {
+      border: 2px solid #9eb497;
+      border-radius: 50%;
+      width: min(330px, 80vw);
+      aspect-ratio: 1;
+      margin: 30px auto;
+      display: grid;
+      place-content: center;
+      box-shadow:
+        0 0 0 12px #d4e1cc,
+        0 0 0 13px #bbcdb3;
+    }
+    .time {
+      font:
+        72px/1.2 Georgia,
+        serif;
+      font-variant-numeric: tabular-nums;
+    }
+    p {
+      color: #536b4d;
+    }
+    button {
+      font: inherit;
+      padding: 10px 23px;
+      border: 1px solid #92aa86;
+      border-radius: 30px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      margin: 4px;
+    }
+    #toggle {
+      background: #285339;
+      color: white;
+      border-color: #285339;
+    }
+    .tabs button {
+      font-size: 13px;
+      padding: 5px 15px;
+    }
+    .tabs button[aria-pressed="true"] {
+      background: #c6d8bb;
+    }
+    .note {
+      font-size: 13px;
+      margin-top: 25px;
+    }
+    @media (max-width: 420px) {
+      .app {
+        padding: 24px;
+      }
+      .time {
+        font-size: 60px;
+      }
+      .ring {
+        width: 270px;
+      }
+    }
+  </style>
+  <main class="app">
+    <div class="top">一刻 / FOCUS CLOCK</div>
+    <h1>把注意力，留给此刻。</h1>
+    <div class="tabs">
+      <button data-min="25" aria-pressed="true">专注 25 分钟</button
+      ><button data-min="5" aria-pressed="false">休息 5 分钟</button>
+    </div>
+    <div class="ring">
+      <div class="time" id="time">25:00</div>
+      <p id="state">准备好，开始一小段专注。</p>
+    </div>
+    <button id="toggle">开始专注</button><button id="reset">重置</button>
+    <p class="note">不用完成所有事，只做眼前这一件。</p>
+  </main>
+  <script>
+    let duration = 1500,
+      remaining = duration,
+      deadline = 0,
+      running = false;
+    const time = document.querySelector("#time"),
+      state = document.querySelector("#state"),
+      toggle = document.querySelector("#toggle");
+    function draw() {
+      time.textContent =
+        String(Math.floor(remaining / 60)).padStart(2, "0") +
+        ":" +
+        String(remaining % 60).padStart(2, "0");
+    }
+    toggle.onclick = () => {
+      running = !running;
+      if (running) deadline = Date.now() + remaining * 1000;
+      toggle.textContent = running ? "暂停" : "继续专注";
+      state.textContent = running
+        ? "正在专注，好好做一件事。"
+        : "已暂停，按你的节奏来。";
+    };
+    document.querySelector("#reset").onclick = () => {
+      running = false;
+      remaining = duration;
+      toggle.textContent = "开始专注";
+      state.textContent = "准备好，开始一小段专注。";
+      draw();
+    };
+    document.querySelectorAll("[data-min]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          duration = Number(b.dataset.min) * 60;
+          document
+            .querySelectorAll("[data-min]")
+            .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+          document.querySelector("#reset").click();
+        }),
+    );
+    setInterval(() => {
+      if (!running) return;
+      remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      draw();
+      if (!remaining) {
+        running = false;
+        state.textContent = "完成了。让眼睛休息一下。";
+        toggle.textContent = "已完成";
+      }
+    }, 250);
+  </script>
+</html>
