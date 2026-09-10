@@ -23,7 +23,7 @@ npm run install:vercel -- quickshare-agent
 
 函数使用专用 CJS 构建入口，数据库连接读取平台注入的 `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN`，也兼容 `DATABASE_URL` / `DATABASE_AUTH_TOKEN`。Blob 使用平台绑定凭据，应用不把对象地址或凭据交给访客。默认函数与新 Turso 数据库放在东京 `hnd1`；已有资源可按实际区域调整 `vercel.json`。
 
-平台默认生产域名用于 `BASE_URL`；自定义域名应设置明确的 HTTPS `BASE_URL`。首次 `.env.vercel` 含私密环境变量，权限 600，不提交或分享。当前仓库为私有仓库，外部朋友不能直接从公开部署按钮复制；当前验收覆盖 CLI 安装流程，没有把浏览器按钮点击标记为已验收。
+平台默认生产域名用于 `BASE_URL`；自定义域名应设置明确的 HTTPS `BASE_URL`。首次 `.env.vercel` 含私密环境变量，权限 600，不提交或分享。平台会将受保护密钥回读为 `[SENSITIVE]`；重跑时脚本保留本地已有真实值，不覆盖服务器密钥。若换设备后只有占位符，需要原有管理员连接或私密备份，本地占位符不能用于登录。当前仓库为私有仓库，外部朋友不能直接从公开部署按钮复制；当前验收覆盖 CLI 安装流程，没有把浏览器按钮点击标记为已验收。
 
 ## 管理员接入
 
